@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise 3: Sai Aua Quiz</title>
+    <style>
+        :root {
+            --primary-color: #d97706; /* Amber-600 */
+            --bg-color: #fffbeb; /* Amber-50 */
+            --text-color: #4b5563; /* Gray-600 */
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: #1f2937;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0 0 10px 0;
+        }
+
+        .instructions {
+            font-size: 1.1em;
+            color: var(--text-color);
+            background-color: #fef3c7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* Layout for Quiz */
+        .quiz-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        /* Image List (Left Side) */
+        .questions-area {
+            flex: 2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .question-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .img-wrapper {
+            width: 100%;
+            height: 200px;
+            background-color: #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .img-fallback {
+            position: absolute;
+            color: #666;
+            font-size: 0.9em;
+            text-align: center;
+            padding: 10px;
+            z-index: 0;
+        }
+
+        /* Drop Zones */
+        .drop-zone {
+            min-height: 80px;
+            background-color: #fff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .drop-zone.hover {
+            background-color: #ecfdf5;
+            border-color: #10b981;
+        }
+
+        .drop-zone.filled {
+            border-style: solid;
+            border-color: #d1d5db;
+            background-color: #f3f4f6;
+        }
+
+        .drop-zone-label {
+            color: #9ca3af;
+            font-style: italic;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        /* Draggable Choices (Right Side / Sticky) */
+        .choices-area {
+            flex: 1;
+            min-width: 250px;
+            background: #fff;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid #e5e7eb;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .choices-area h3 {
+            margin-top: 0;
+            color: var(--text-color);
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .draggable {
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-left: 4px solid var(--primary-color);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            cursor: grab;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .draggable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+        }
+
+        /* Feedback Styles */
+        .correct {
+            border-color: #10b981 !important;
+            background-color: #ecfdf5 !important;
+            color: #065f46;
+        }
+        
+        .incorrect {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+            color: #991b1b;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background-color: #b45309;
+        }
+
+        button.secondary {
+            background-color: #6b7280;
+        }
+        
+        button.secondary:hover {
+            background-color: #4b5563;
+        }
+
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .quiz-layout {
+                flex-direction: column-reverse;
+            }
+            .choices-area {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Exercise 3: Sai Aua</h1>
+        <div class="instructions">
+            <strong>Directions:</strong> Drag the method of making Sai Aua from the list on the right and drop it onto the matching picture. (10 Points)
+        </div>
+    </header>
+
+    <div class="quiz-layout">
+        <!-- Images / Drop Zones -->
+        <div class="questions-area" id="questions-container">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <!-- Draggable Choices -->
+        <div class="choices-area">
+            <h3>Method Steps</h3>
+            <div id="choices-container">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="checkAnswers()">Submit Answers</button>
+        <button class="secondary" onclick="resetQuiz()">Reset</button>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div id="result-modal">
+    <div class="modal-content">
+        <h2>Quiz Result</h2>
+        <div class="score-display" id="final-score">0/10</div>
+        <p id="feedback-text">Good try!</p>
+        <button onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    // Data Configuration
+    // Note: Assuming filenames correspond to steps logically (pig1=step1, etc.)
+    const quizData = [
+        {
+            id: 1,
+            image: "pig1.jpg",
+            text: "1. Make chilli paste: In a mortar and pestle, pound together lemongrass, dried large red chillies, shallot, garlic, galangal, salt and shrimp paste until fine."
+        },
+        {
+            id: 2,
+            image: "pig2.jpg",
+            text: "2. In a large mixing bowl, add pork, chilli paste and seasoning the mixture with soy sauce and sugar, mix well. Then add finely chopped kaffir lime leaves and finely chopped spring onion. Mix everything together and leave the pork for 30 minutes."
+        },
+        {
+            id: 3,
+            image: "pig3.jpg",
+            text: "3. Tie off the thin end of the intestine and stuff the mixture into intestine."
+        },
+        {
+            id: 4,
+            image: "pig4.jpg",
+            text: "4. Grill on low heat until golden brown, dry and aromatic."
+        }
+    ];
+
+    let draggedItem = null;
+
+    // Initialize Quiz
+    function initQuiz() {
+        const questionsContainer = document.getElementById('questions-container');
+        const choicesContainer = document.getElementById('choices-container');
+        
+        questionsContainer.innerHTML = '';
+        choicesContainer.innerHTML = '';
+
+        // Render Questions (Images + Drop Zones)
+        quizData.forEach(item => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'question-item';
+            questionEl.innerHTML = `
+                <div class="img-wrapper">
+                    <span class="img-fallback">Image not found<br>(${item.image})</span>
+                    <img src="${item.image}" alt="Step ${item.id}" onerror="this.style.display='none'">
+                </div>
+                <div class="drop-zone" data-correct-id="${item.id}" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                    <span class="drop-zone-label">Drop text here</span>
+                </div>
+            `;
+            questionsContainer.appendChild(questionEl);
+        });
+
+        // Render Choices (Shuffled)
+        const shuffledChoices = [...quizData].sort(() => Math.random() - 0.5);
+        
+        shuffledChoices.forEach(item => {
+            const choiceEl = document.createElement('div');
+            choiceEl.className = 'draggable';
+            choiceEl.draggable = true;
+            choiceEl.textContent = item.text;
+            choiceEl.dataset.id = item.id;
+            
+            choiceEl.addEventListener('dragstart', handleDragStart);
+            choiceEl.addEventListener('dragend', handleDragEnd);
+            
+            // Add click support for mobile/accessibility
+            choiceEl.addEventListener('click', handleChoiceClick);
+
+            choicesContainer.appendChild(choiceEl);
+        });
+    }
+
+    // Drag and Drop Logic
+    function handleDragStart(e) {
+        draggedItem = this;
+        this.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', this.dataset.id);
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        draggedItem = null;
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        if (e.target.closest('.drop-zone')) {
+            e.target.closest('.drop-zone').classList.add('hover');
+        }
+    }
+
+    function handleDragLeave(e) {
+        if (e.target.closest('.drop-zone')) {
+            e.target.closest('.drop-zone').classList.remove('hover');
+        }
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const dropZone = e.target.closest('.drop-zone');
+        dropZone.classList.remove('hover');
+
+        if (draggedItem) {
+            // Check if drop zone already has an item
+            const existingItem = dropZone.querySelector('.draggable');
+            if (existingItem) {
+                // Return existing item to choices list
+                document.getElementById('choices-container').appendChild(existingItem);
+            }
+            
+            // Move dragged item to drop zone
+            dropZone.appendChild(draggedItem);
+            dropZone.classList.add('filled');
+            
+            // Remove label visibility
+            const label = dropZone.querySelector('.drop-zone-label');
+            if(label) label.style.opacity = '0';
+        }
+    }
+
+    // Mobile/Click Logic (Simplified)
+    let selectedChoice = null;
+
+    function handleChoiceClick(e) {
+        // If clicking inside choices container
+        if(this.parentElement.id === 'choices-container') {
+            if (selectedChoice) {
+                selectedChoice.style.borderColor = '#d1d5db';
+                selectedChoice.style.backgroundColor = 'white';
+            }
+            selectedChoice = this;
+            this.style.borderColor = '#d97706'; // Highlight
+            this.style.backgroundColor = '#fffbeb';
+            
+            // Prepare drop zones to be clickable
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.onclick = function() {
+                    if (selectedChoice) {
+                        const existing = this.querySelector('.draggable');
+                        if (existing) {
+                             document.getElementById('choices-container').appendChild(existing);
+                        }
+                        this.appendChild(selectedChoice);
+                        this.classList.add('filled');
+                        this.querySelector('.drop-zone-label').style.opacity = '0';
+                        
+                        // Reset styles
+                        selectedChoice.style.borderColor = '#d1d5db';
+                        selectedChoice.style.backgroundColor = 'white';
+                        selectedChoice = null;
+                        
+                        // Remove click listeners from zones
+                        document.querySelectorAll('.drop-zone').forEach(z => z.onclick = null);
+                    }
+                }
+            });
+        } 
+        // If clicking item already in dropzone, send it back
+        else {
+             document.getElementById('choices-container').appendChild(this);
+             const zone = document.querySelectorAll('.drop-zone');
+             // Update zone styles if empty
+             // (Logic simplified for brevity)
+             this.style.borderColor = '#d1d5db';
+             this.style.backgroundColor = 'white';
+        }
+    }
+
+    // Check Answers
+    function checkAnswers() {
+        let score = 0;
+        const totalPoints = 10;
+        const pointsPerItem = 2.5;
+        const dropZones = document.querySelectorAll('.drop-zone');
+        let allFilled = true;
+
+        dropZones.forEach(zone => {
+            const item = zone.querySelector('.draggable');
+            const label = zone.querySelector('.drop-zone-label');
+            
+            // Reset styles
+            zone.classList.remove('correct', 'incorrect');
+            
+            if (item) {
+                const correctId = zone.dataset.correctId;
+                const itemId = item.dataset.id;
+                
+                if (correctId === itemId) {
+                    score += pointsPerItem;
+                    zone.classList.add('correct');
+                } else {
+                    zone.classList.add('incorrect');
+                }
+            } else {
+                allFilled = false;
+                if(label) label.style.opacity = '1';
+                zone.classList.remove('filled');
+            }
+        });
+
+        // Show Result
+        const finalScoreEl = document.getElementById('final-score');
+        const feedbackEl = document.getElementById('feedback-text');
+        
+        // Remove decimal if whole number
+        finalScoreEl.textContent = (score % 1 === 0 ? score : score.toFixed(1)) + " / 10";
+        
+        if (score === 10) {
+            feedbackEl.textContent = "Excellent! You got everything right.";
+        } else if (score >= 5) {
+            feedbackEl.textContent = "Good job! Check the red boxes to see what needs fixing.";
+        } else {
+            feedbackEl.textContent = "Keep trying! Match the steps carefully.";
+        }
+
+        document.getElementById('result-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
+    }
+
+    function resetQuiz() {
+        initQuiz();
+        document.querySelectorAll('.drop-zone').forEach(z => {
+            z.classList.remove('correct', 'incorrect', 'filled');
+        });
+        closeModal();
+    }
+
+    // Start
+    window.onload = initQuiz;
+
+</script>
+
+</body>
+</html>
